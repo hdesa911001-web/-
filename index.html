@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>美股每日走勢</title>
+<style>
+:root{--bg:#f3f5f8;--card:#fff;--ink:#16202e;--sub:#5d6b7e;--line:#dfe4ea;--up:#d6322f;--down:#12945a}
+@media(prefers-color-scheme:dark){:root{--bg:#10151c;--card:#18202a;--ink:#e8edf3;--sub:#93a1b3;--line:#27323f;--up:#ff5a55;--down:#2fc486}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:8px 0 2px}
+.meta{color:var(--sub);font-size:13px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sym{font-size:20px;font-weight:700}
+.name{color:var(--sub);font-size:13px}
+.px{font-size:26px;font-weight:700;text-align:right}
+.chg{text-align:right;font-weight:600}
+.up{color:var(--up)}.down{color:var(--down)}
+svg{width:100%;height:80px;margin:8px 0}
+.tag{display:inline-block;font-size:13px;padding:1px 10px;border-radius:99px;border:1px solid var(--line);margin-bottom:6px}
+ul{margin:6px 0 0;padding-left:20px;color:var(--ink);font-size:14px}
+.note{color:var(--sub);font-size:12px;margin-top:20px}
+</style>
+</head>
+<body>
+<main>
+<h1>美股每日走勢</h1>
+<div class="meta" id="meta">載入中…</div>
+<div id="list"></div>
+<p class="note">以上為依均線與 RSI 自動產生的技術面摘要，僅供參考，不是投資建議。紅漲綠跌。</p>
+</main>
+<script>
+fetch("data.json?"+Date.now()).then(r=>r.json()).then(d=>{
+  document.getElementById("meta").textContent="資料更新："+d.updated;
+  document.getElementById("list").innerHTML=d.items.map(card).join("");
+}).catch(()=>{document.getElementById("meta").textContent="讀不到資料，請確認 data.json 已產生。"});
+function spark(v,up){
+  const w=300,h=80,mn=Math.min(...v),mx=Math.max(...v);
+  const p=v.map((x,i)=>(i/(v.length-1)*w).toFixed(1)+","+(h-4-(x-mn)/(mx-mn||1)*(h-8)).toFixed(1)).join(" ");
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${p}" fill="none" stroke="var(${up?"--up":"--down"})" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function card(i){
+  const up=i.change_pct>=0,c=up?"up":"down",s=up?"+":"";
+  return `<section class="card"><div class="top"><div><div class="sym">${i.sym}</div><div class="name">${i.name}</div></div>
+  <div><div class="px">${i.close.toFixed(2)}</div><div class="chg ${c}">${s}${i.change_pct.toFixed(2)}%</div></div></div>
+  ${spark(i.series,up)}<span class="tag">趨勢：${i.trend}</span><ul>${i.notes.map(n=>`<li>${n}</li>`).join("")}</ul></section>`;
+}
+</script>
+</body>
+</html>
