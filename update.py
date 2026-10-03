@@ -1,4 +1,4 @@
-mport json, sys, urllib.request, datetime
+import json, sys, urllib.request, datetime
 
 TICKERS = {
     "NVDA": "輝達 NVIDIA",
